@@ -1,8 +1,16 @@
-money = int(input("Введите сумму"))
-per_cent = {'ТКБ': 5.6, 'СКБ': 5.9, 'ВТБ': 4.28, 'СБЕР': 4.0}
-tkb = int((per_cent['ТКБ'])*(money/100))
-skb = int((per_cent['СКБ'])*(money/100))
-vtb = int((per_cent['ВТБ'])*(money/100))
-sber = int((per_cent['СБЕР'])*(money/100))
-deposit = [tkb, skb, vtb, sber]
-print(deposit)
+# This is a sample Python script.
+
+# Press Shift+F10 to execute it or replace it with your code.
+# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+
+
+def print_hi(name):
+    # Use a breakpoint in the code line below to debug your script.
+    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+
+
+# Press the green button in the gutter to run the script.
+if __name__ == '__main__':
+    print_hi('PyCharm')
+
+# See PyCharm help at https://www.jetbrains.com/help/pycharm/

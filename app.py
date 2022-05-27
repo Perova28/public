@@ -1,47 +1,17 @@
 import telebot
-import requests
-import json
+from config import keys, TOKEN
+from utils import ConvertionException, CryptoConverter
 
-TOKEN = '5391839250:AAGrRliZ_BMvkHpp_mzzm-fjuQ1IVqCL41s'
 bot = telebot.TeleBot(TOKEN)
 
-class ConvertionException(Exception):
-    pass
+@bot.message_handler(commands=['start'])
+def start(message: telebot.types.Message):
+    text = 'Привет! Я Бот-Конвертер валют и я могу:  \n- Показать список доступных валют через команду /values \
+    \n- Вывести конвертацию валюты через команду <имя валюты> <в какую валюту перевести> <количество переводимой валюты>\n \
+- Напомнить, что я могу через команду /help'
+    bot.reply_to(message, text)
 
-class CryptoConverter:
-    @staticmethod
-    def convert(self, message:telebot.types.Message):
-        values = message.text.split(' ')
-
-        if len(values) > 3:
-            raise ConvertionException('Слишком много параметров')
-        quote, base, amount = values
-        if quote == base:
-            raise ConvertionException(f'Невозможно перевести одинаковые валюты {base}')
-
-        try:
-            quote_ticker = keys[quote]
-        except KeyError:
-            raise ConvertionException(f'Не удалось обработать валюту {quote}')
-
-        try:
-            base_ticker = keys[base]
-        except KeyError:
-            raise ConvertionException(f'Не удалось обработать валюту {base}')
-
-        try:
-            amount = float(amount)
-        except ValueError:
-            raise ConvertionException(f'Не удалось обработать количество {amount}')
-
-keys = {
-    'Доллар': 'USD',
-    'Рубль': 'RUB',
-    'Евро': 'EUR'
-}
-
-
-@bot.message_handler(commands=['start','help'])
+@bot.message_handler(commands=['help'])
 def help(message: telebot.types.Message):
     text = "Чтобы начать работу введите комманду боту в следующем формате:\n<имя валюты>, \
     <в какую валюту перести>,\
@@ -49,7 +19,7 @@ def help(message: telebot.types.Message):
     bot.reply_to(message, text)
 
 @bot.message_handler(commands=['values'])
-def values(message:telebot.types.Message):
+def values(message: telebot.types.Message):
     text = 'Доступные валюты:'
     for key in keys.keys():
         text = '\n'.join((text, key))
@@ -57,13 +27,20 @@ def values(message:telebot.types.Message):
 
 @bot.message_handler(content_types=['text', ])
 def convert(message: telebot.types.Message):
+    try:
+     values = message.text.split(' ')
 
-
-
-    r = requests.get(f'https://min-api.cryptocompare.com/data/price?fsym={quote_ticker}&tsyms={base_ticker}')
-    total_base = json.loads(r.content)[keys[base]]
-    text = f'Цена {amount} {quote} в {base} - {total_base}'
+     if len(values) != 3:
+         raise ConvertionException('Слишком много параметров')
+     quote, base, amount = values
+     total_base = CryptoConverter.convert(quote, base, amount)
+    except ConvertionException as e:
+        bot.reply_to(message, f'Ошибка пользователя\n{e}')
+    except Exception as e:
+        bot.reply_to(message, f'Не удалось обработать комманду\n{e}')
+    else:
+        text = f'Цена {amount} {quote} в {base} - {float(total_base)*float(amount)}'
     bot.send_message(message.chat.id, text)
 
 
-bot.polling()
+bot.polling(non_stop=True)
